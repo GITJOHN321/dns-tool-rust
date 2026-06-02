@@ -1,14 +1,9 @@
 use std::io;
 mod ui;
-mod models;
-mod services;
-mod controllers;
-mod utils;
-
 use crate::ui::matrix_table::render_matrix_table;
-use crate::controllers::dns_controller::execute_query;
-use crate::models::dns_model::DnsQuery;
+mod models;
 
+use crate::models::model_query_example::{DnsQuery, Host, Panel, Whois, Ssl};
 use crossterm::{
     event::{self, Event, KeyCode},
     execute,
@@ -37,7 +32,48 @@ fn main() -> io::Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     let mut input = String::new();
-    let mut domain = DnsQuery::default();
+    let mut output_text = String::new();
+    
+    let ssl = Ssl {
+        date: "2026-12-31".to_string(),
+        organization: "Let's Encrypt".to_string(),
+        active: "true".to_string(),
+    };
+
+    let host = Host {
+        name: "mail.example.com".to_string(),
+        ip: "192.168.1.10".to_string(),
+        ptr: "mail.example.com".to_string(),
+        ping: "24ms".to_string(),
+        ssl,
+    };
+
+    let consulta = DnsQuery {
+        domain: "example.com".to_string(),
+
+        hosts: vec![host],
+
+        spf: "v=spf1 include:_spf.google.com ~all".to_string(),
+        dmarc: "v=DMARC1; p=none".to_string(),
+        dkim: "selector._domainkey".to_string(),
+
+        ns: "ns1.example.com, ns2.example.com".to_string(),
+        mx: "mail.example.com".to_string(),
+
+        panel: Panel {
+            name: "cPanel".to_string(),
+            version: "122".to_string(),
+        },
+
+        whois: Whois {
+            date_register: "2020-01-01".to_string(),
+            date_expire: "2030-01-01".to_string(),
+            date_update: "2025-01-01".to_string(),
+            status: "active".to_string(),
+        },
+
+        details: "Consulta completada".to_string(),
+    };
 
     loop {
         terminal.draw(|f| {
@@ -91,13 +127,44 @@ fn main() -> io::Result<()> {
             // --------------------------------------------------
 
 
+            let data = vec![
+                vec![
+                    consulta.hosts[0].name.clone(),
+                    "255.255.255.255".to_string(),
+                    "dns.google".to_string(),
+                    "10ms".to_string(),
+                    "OK".to_string(),
+                ],
+                vec![
+                    "mail".to_string(),
+                    "1.1.1.1\n1.1.1.1\n1.1.1.1\n1.1.1.1\n1.1.1.1".to_string(),
+                    "mail.google.com".to_string(),
+                    "8ms".to_string(),
+
+                    "OK".to_string(),
+                ],
+                vec![
+                    "ftp".to_string(),
+                    "1.1.1.1".to_string(),
+                    "ftp.google.com".to_string(),
+                    "8ms".to_string(),
+                    "OK".to_string(),
+                ],
+                vec![
+                    "webmail".to_string(),
+                    "1.1.1.1".to_string(),
+                    "webmail.google.com".to_string(),
+                    "8ms".to_string(),
+                    "OK".to_string(),
+                ],
+            ];
             let data = &domain.hosts;
 
             render_matrix_table(
                 f,
                 left[1],
                 &data,
-                &domain.domain,
+                &consulta.domain,
             );
             // --------------------------------------------------
             // PANEL SECUNDARIO
@@ -236,8 +303,8 @@ fn main() -> io::Result<()> {
 
                     // Enter envía contenido
                     KeyCode::Enter => {
-                        domain = execute_query(&input);
-                        
+                        output_text = "google.com".to_string();
+
                         // Limpiar input
                         input.clear();
                     }
