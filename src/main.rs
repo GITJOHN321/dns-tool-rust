@@ -110,8 +110,8 @@ fn main() -> io::Result<()> {
                 f,
                 left[2],
                 "Email Records".to_string(),
-                &domain.spf,
-                Color::Green,
+                &format!("- SPF: {}\n- DMARC: {}\n- DKIM: {}",&domain.spf,&domain.dmarc,&domain.dkim),
+                Color::White,
             );
 
             // ==================================================
@@ -151,12 +151,20 @@ fn main() -> io::Result<()> {
             // PANEL MX
             // --------------------------------------------------
 
+            let ssl_text = match domain.hosts.first() {
+                Some(host) => format!(
+                    "- Provider:\n{}\n- Expire on: {}",
+                    host.ssl.organization,
+                    host.ssl.date
+                ),
+                None => "No SSL information found".to_string(),
+            };
             render_basic_table(
                 f,
                 right[1],
-                "NS Records".to_string(),
-                &domain.ns,
-                Color::Green,
+                "SSL Checker".to_string(),
+                &ssl_text,
+                Color::Cyan,
             );
 
             // --------------------------------------------------

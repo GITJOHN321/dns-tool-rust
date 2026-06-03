@@ -77,19 +77,19 @@ pub fn resolve_ssl(domain: &str) -> Ssl {
                 for line in stdout.lines() {
 
                     if line.starts_with("issuer=") {
+                        for part in line.split(',') {
+                            let part = part.trim();
 
-                        if let Some(pos) = line.find("O=") {
-
-                            let issuer =
-                                &line[pos + 2..];
-
-                            organization =
-                                issuer
-                                    .split(',')
-                                    .next()
+                            if part.starts_with("O=") || part.starts_with("O =") {
+                                organization = part
+                                    .split('=')
+                                    .nth(1)
                                     .unwrap_or("")
                                     .trim()
                                     .to_string();
+
+                                break;
+                            }
                         }
                     }
 

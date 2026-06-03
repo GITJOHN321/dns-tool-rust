@@ -1,58 +1,55 @@
 // controllers/dns_controller.rs
+use std::thread;
+
 use crate::models::dns_model::DnsQuery;
-use crate::services::dns_service::query_domain;
-use crate::services::ns_service::resolve_ns;
-use crate::services::mx_service::resolve_mx;
-use crate::services::panel_service::detect_panel;
-use crate::services::spf_service::resolve_spf;
+use crate::services::{dns_service,ns_service, mx_service,panel_service,spf_service,dkim_service,dmarc_service};
 
 pub fn execute_query(domain: &str) -> DnsQuery {
     // Aquí puedes validar el dominio,
     // registrar logs, combinar servicios, etc.
-
-    DnsQuery{
-        domain: domain.to_string(),
-        hosts: query_domain(&domain),
-        ns: resolve_ns(&domain),
-        mx: resolve_mx(&domain),
-        panel: detect_panel(&domain),
-        spf: resolve_spf(&domain),
-    }
-}
-  
-/*
-use std::thread;
-
-pub fn execute_query(domain: &str) -> DnsQuery {
     let domain = domain.to_string();
-
     let hosts_domain = domain.clone();
     let ns_domain = domain.clone();
     let mx_domain = domain.clone();
     let panel_domain = domain.clone();
+    let spf_domain = domain.clone();
+    let dkim_domain = domain.clone();
+    let dmarc_domain = domain.clone();
 
     let hosts_handle = thread::spawn(move || {
-        query_domain(&hosts_domain)
+        dns_service::query_domain(&hosts_domain)
     });
 
     let ns_handle = thread::spawn(move || {
-        resolve_ns(&ns_domain)
+        ns_service::resolve_ns(&ns_domain)
     });
 
     let mx_handle = thread::spawn(move || {
-        resolve_mx(&mx_domain)
+        mx_service::resolve_mx(&mx_domain)
     });
 
     let panel_handle = thread::spawn(move || {
-        detect_panel(&panel_domain)
+        panel_service::detect_panel(&panel_domain)
+    });
+    let spf_handle = thread::spawn(move || {
+        spf_service::resolve_spf(&spf_domain)
+    });
+    let dkim_handle = thread::spawn(move || {
+        dkim_service::resolve_dkim(&dkim_domain)
+    });
+    let dmarc_handle = thread::spawn(move || {
+        dmarc_service::resolve_dmarc(&dmarc_domain)
     });
 
-    DnsQuery {
-        domain,
+    DnsQuery{
+        domain: domain.to_string(),
         hosts: hosts_handle.join().unwrap(),
         ns: ns_handle.join().unwrap(),
         mx: mx_handle.join().unwrap(),
         panel: panel_handle.join().unwrap(),
+        spf: spf_handle.join().unwrap(),
+        dkim: dkim_handle.join().unwrap(),
+        dmarc: dmarc_handle.join().unwrap(),
     }
 }
-*/
+  

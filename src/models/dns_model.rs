@@ -7,6 +7,8 @@ pub struct DnsQuery {
     pub mx: String,
     pub panel: String,
     pub spf: String,
+    pub dkim: String,
+    pub dmarc: String,
 }
 
 #[derive(Debug, Clone, Default)]
