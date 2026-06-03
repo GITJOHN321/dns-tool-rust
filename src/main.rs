@@ -135,17 +135,13 @@ fn main() -> io::Result<()> {
             // PANEL A
             // --------------------------------------------------
 
-            let panel4_a = Paragraph::new(
-                "142.250.184.14\n142.250.184.36"
-            )
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title("A Records")
-                    .borders(Borders::ALL),
+            render_basic_table(
+                f,
+                right[0],
+                "WHOIS".to_string(),
+                &"Aquí va el WHOIS".to_string(),
+                Color::LightBlue,
             );
-
-            f.render_widget(panel4_a, right[0]);
 
             // --------------------------------------------------
             // PANEL MX
