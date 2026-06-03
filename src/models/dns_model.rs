@@ -9,6 +9,7 @@ pub struct DnsQuery {
     pub spf: String,
     pub dkim: String,
     pub dmarc: String,
+    pub whois: WhoisInfo,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -25,4 +26,10 @@ pub struct Ssl {
     pub date: String,
     pub organization: String,
     pub active: String,
+}
+#[derive(Debug, Clone, Default)]
+pub struct WhoisInfo {
+    pub registrar: String,
+    pub expire_date: String,
+    pub statuses: String,
 }

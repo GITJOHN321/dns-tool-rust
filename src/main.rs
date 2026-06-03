@@ -121,11 +121,11 @@ fn main() -> io::Result<()> {
             let right = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
-                    Constraint::Length(5), // A
-                    Constraint::Length(5), // MX
-                    Constraint::Min(1), // NS
-                    Constraint::Min(1),    // SPF/DKIM
-                    Constraint::Length(3), // Footer
+                    Constraint::Min(4), // Whois
+                    Constraint::Length(5), // SSL checker
+                    Constraint::Min(1), // NS Records
+                    Constraint::Min(1),    // MX Records
+                    Constraint::Length(3), // Panel
                 ])
                 .split(root[1]);
 
@@ -139,7 +139,7 @@ fn main() -> io::Result<()> {
                 f,
                 right[0],
                 "WHOIS".to_string(),
-                &"Aquí va el WHOIS".to_string(),
+                &format!("- Registrant: {}\n- Expire on: {}\n- Estados:\n -{}",&domain.whois.registrar,&domain.whois.expire_date,&domain.whois.statuses),
                 Color::LightBlue,
             );
 
