@@ -5,7 +5,7 @@ pub fn resolve_ping(domain: &str) -> String {
         .arg("-c")
         .arg("1")
         .arg("-W")
-        .arg("1")
+        .arg("1000")
         .arg(domain)
         .output();
 
@@ -14,7 +14,7 @@ pub fn resolve_ping(domain: &str) -> String {
 
             // Si ping devolvió error o timeout
             if !output.status.success() {
-                return "No responde".to_string();
+                return "Timeout".to_string();
             }
 
             let stdout =

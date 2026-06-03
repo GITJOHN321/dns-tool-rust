@@ -7,6 +7,7 @@ use crate::models::dns_model::{
 };
 use crate::utils::resolve_ip::resolve_ip;
 use crate::utils::resolve_ping::resolve_ping;
+use crate::utils::resolve_ssl::resolve_ssl;
 
 pub fn query_domain(domain: &str) -> Vec<Host> {
 
@@ -39,7 +40,7 @@ pub fn query_domain(domain: &str) -> Vec<Host> {
 
                     ptr: ip_info.ptr,
                     ping: resolve_ping(&hostname),
-                    ssl: String::new(),
+                    ssl: resolve_ssl(&hostname)
                 }
             })
         })

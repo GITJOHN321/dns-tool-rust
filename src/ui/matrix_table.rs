@@ -43,7 +43,7 @@ pub fn render_matrix_table(
             Cell::from(row.ping.clone())
                 .style(Style::default().fg(Color::Magenta)),
 
-            Cell::from(row.ssl.clone())
+            Cell::from(row.ssl.active.clone())
                 .style(Style::default().fg(Color::Cyan)),
         ])
         .height(height.max(1))
@@ -54,7 +54,7 @@ pub fn render_matrix_table(
         Constraint::Length(15),
         Constraint::Min(20),
         Constraint::Length(12),
-        Constraint::Length(5),
+        Constraint::Length(10),
     ];
 
     let table = Table::new(rows, widths)

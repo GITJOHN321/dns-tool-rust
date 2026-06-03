@@ -1,1 +1,5 @@
 pub mod dns_service;
+pub mod ns_service;
+pub mod mx_service;
+pub mod panel_service;
+pub mod spf_service;

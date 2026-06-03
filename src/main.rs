@@ -6,6 +6,7 @@ mod controllers;
 mod utils;
 
 use crate::ui::matrix_table::render_matrix_table;
+use crate::ui::ns_table::render_basic_table;
 use crate::controllers::dns_controller::execute_query;
 use crate::models::dns_model::DnsQuery;
 
@@ -24,6 +25,7 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     widgets::{Block, Borders, Paragraph, Wrap},
+    style::{Color},
     Terminal,
 };
 
@@ -103,18 +105,14 @@ fn main() -> io::Result<()> {
             // PANEL SECUNDARIO
             // --------------------------------------------------
 
-            let panel2 = Paragraph::new(
-                "Panel secundario\n\n\
-                Información complementaria.v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvn4MTg/2Jk0jwxHzA9Tu8oC0UsGZphsJ/AhyO1mVIlU84PHAU7wqkT+KETOBq9ibK4E0mHYzXDuF90iFEKAPpdXAxHTQVFp7FiVyFriaEPEP1acwIZsoJQ/r0PzGnFsvzyMKdmLu6RZvhts398pCgxp3lAtgEMNfg7QJ6cvNk7xyOIz1lEM/kIfkFvEvwTVz07EdLUiuYcPvTOh04eHYLXBSddjAyIpJMJa3Op3XHxbwXVShooEJTttOnP99i3xEZuwzHSHLeqr46mh0rw5RdcSaR+bHFCy3zH0LkmUElTG7NH+AqTEuUa3n3an91sC9ePdMBddvfHOtWnGJQJD7/QIDAQAB"
-            )
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title("Panel Secundario")
-                    .borders(Borders::ALL),
-            );
 
-            f.render_widget(panel2, left[2]);
+            render_basic_table(
+                f,
+                left[2],
+                "Email Records".to_string(),
+                &domain.spf,
+                Color::Green,
+            );
 
             // ==================================================
             // DERECHA
@@ -153,67 +151,49 @@ fn main() -> io::Result<()> {
             // PANEL MX
             // --------------------------------------------------
 
-            let panel4_mx = Paragraph::new(
-                "mail.google.com"
-            )
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title("MX Records")
-                    .borders(Borders::ALL),
+            render_basic_table(
+                f,
+                right[1],
+                "NS Records".to_string(),
+                &domain.ns,
+                Color::Green,
             );
-
-            f.render_widget(panel4_mx, right[1]);
 
             // --------------------------------------------------
             // PANEL NS
             // --------------------------------------------------
 
-            let panel4_ns = Paragraph::new(
-                "ns1.google.com\nns2.google.com"
-            )
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title("NS Records")
-                    .borders(Borders::ALL),
+            render_basic_table(
+                f,
+                right[2],
+                "NS Records".to_string(),
+                &domain.ns,
+                Color::Green,
             );
 
-            f.render_widget(panel4_ns, right[2]);
-
             // --------------------------------------------------
-            // PANEL SPF / DKIM
+            // PANEL MX
             // --------------------------------------------------
 
-            let panel4_spf = Paragraph::new(
-                "SPF: OK\n\
-                 DKIM: OK\n\n\
-                 Información adicional."
-            )
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title("SPF / DKIM")
-                    .borders(Borders::ALL),
+            render_basic_table(
+                f,
+                right[3],
+                "MX Records".to_string(),
+                &domain.mx,
+                Color::Yellow,
             );
-
-            f.render_widget(panel4_spf, right[3]);
 
             // --------------------------------------------------
             // FOOTER
             // --------------------------------------------------
 
-            let panel5 = Paragraph::new(
-                "Status: OK | Lookup: 12ms"
-            )
-            .wrap(Wrap { trim: true })
-            .block(
-                Block::default()
-                    .title("Footer")
-                    .borders(Borders::ALL),
+            render_basic_table(
+                f,
+                right[4],
+                "Panel".to_string(),
+                &format!("Panel: {}",&domain.panel),
+                Color::Blue,
             );
-
-            f.render_widget(panel5, right[4]);
         })?;
 
         if crossterm::event::poll(
