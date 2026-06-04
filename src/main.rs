@@ -225,7 +225,7 @@ fn main() -> io::Result<()> {
                     }
 
                     KeyCode::Enter => {
-                        domain = execute_query(&input);
+                        domain = execute_query(&input.trim());
                         input.clear();
                     }
 

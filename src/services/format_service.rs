@@ -7,40 +7,23 @@ pub fn format_dns_query(q: &DnsQuery) -> String {
 
     out.push_str("=== HOSTS ===\n");
     for h in &q.hosts {
-        out.push_str(&format!(
-            "- {}:\n{} -> {} | {}\n",
-            h.name, h.ip, h.ptr, h.ping
-        ));
-        out.push_str("=== SSL ===\n");
-        out.push_str(&format!(
-            "  SSL: {} | {} | {}\n",
-            h.ssl.organization, h.ssl.date, h.ssl.active
-        ));
+        let ips: Vec<&str> = h.ip.lines().collect();
+        let ptrs: Vec<&str> = h.ptr.lines().collect();
+        out.push_str(&format!("{}{}:\n", h.name, q.domain));
+
+        for (ip, ptr) in ips.iter().zip(ptrs.iter()) {
+            out.push_str(&format!("{ip} -> {ptr}\n"));
+        }
+        out.push_str("\n");
     }
 
-    out.push_str("\n=== NS ===\n");
-    out.push_str(&q.ns);
+    out.push_str(&format!("Name Servers:\n{}\n\n",&q.ns)); 
 
-    out.push_str("\n\n=== MX ===\n");
-    out.push_str(&q.mx);
+    out.push_str(&format!("MX:\n{}\n\n",&q.mx)); 
 
-    out.push_str("\n\n=== PANEL ===\n");
-    out.push_str(&q.panel);
-
-    out.push_str("\n\n=== SPF ===\n");
-    out.push_str(&q.spf);
-
-    out.push_str("\n\n=== DKIM ===\n");
-    out.push_str(&q.dkim);
-
-    out.push_str("\n\n=== DMARC ===\n");
-    out.push_str(&q.dmarc);
-
-    out.push_str("\n\n=== WHOIS ===\n");
-    out.push_str(&format!(
-        "Registrar: {}\nExpire: {}\nStatuses:\n{}",
-        q.whois.registrar, q.whois.expire_date, q.whois.statuses
-    ));
+    out.push_str(&format!("- SPF:{}\n",&q.spf));
+    out.push_str(&format!("- DMARC:{}\n",&q.dmarc));
+    out.push_str(&format!("- DKIM:{}\n",&q.dkim));
 
     out
 }
