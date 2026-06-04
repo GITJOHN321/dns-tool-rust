@@ -1,48 +1,64 @@
-use std::process::Command;
+use std::{
+    process::{Command, Stdio},
+    thread,
+    time::{Duration, Instant},
+};
 
 pub fn resolve_ping(domain: &str) -> String {
-    let output = Command::new("ping")
-        .arg("-c")
-        .arg("1")
-        .arg("-W")
-        .arg("1000")
-        .arg(domain)
-        .output();
+    let mut child = match Command::new("ping")
+        .args(["-c", "1", domain])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+    {
+        Ok(child) => child,
+        Err(_) => return "Error".to_string(),
+    };
 
-    match output {
-        Ok(output) => {
+    let timeout = Duration::from_secs(2);
+    let start = Instant::now();
 
-            // Si ping devolvió error o timeout
-            if !output.status.success() {
-                return "Timeout".to_string();
-            }
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                if !status.success() {
+                    return "Timeout".to_string();
+                }
 
-            let stdout =
-                String::from_utf8_lossy(&output.stdout);
+                let output = match child.wait_with_output() {
+                    Ok(output) => output,
+                    Err(_) => return "Error".to_string(),
+                };
 
-            // Buscar la línea que contiene time=
-            for line in stdout.lines() {
+                let stdout =
+                    String::from_utf8_lossy(&output.stdout);
 
-                if let Some(pos) = line.find("time=") {
+                for line in stdout.lines() {
+                    if let Some(pos) = line.find("time=") {
+                        let value = &line[pos + 5..];
 
-                    let value = &line[pos + 5..];
-
-                    if let Some(end) = value.find(' ') {
-
-                        return format!(
-                            "{} ms",
-                            &value[..end]
-                        );
+                        if let Some(end) = value.find(' ') {
+                            return format!(
+                                "{} ms",
+                                &value[..end]
+                            );
+                        }
                     }
                 }
+
+                return "Responds".to_string();
             }
 
-            // Respondió pero no se pudo extraer el tiempo
-            "Responde".to_string()
-        }
+            Ok(None) => {
+                if start.elapsed() >= timeout {
+                    let _ = child.kill();
+                    return "Timeout".to_string();
+                }
 
-        Err(error) => {
-            format!("Error: {}", error)
+                thread::sleep(Duration::from_millis(50));
+            }
+
+            Err(_) => return "Error".to_string(),
         }
     }
 }

@@ -7,3 +7,4 @@ pub fn send_clipboard(dns_query: &DnsQuery)-> String{
     copy_to_clipboard(&formatted);
     "Text Copied".to_string()
 }
+

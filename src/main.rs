@@ -42,6 +42,8 @@ fn main() -> io::Result<()> {
     let mut input = String::new();
     let mut clipboard_advice = String::new();
     let mut domain = DnsQuery::default();
+    let mut history: Vec<String> = Vec::new();
+    let mut history_index: Option<usize> = None;
 
     loop {
         terminal.draw(|f| {
@@ -225,8 +227,49 @@ fn main() -> io::Result<()> {
                     }
 
                     KeyCode::Enter => {
-                        domain = execute_query(&input.trim());
+
+                        if !input.is_empty() {
+                            domain = execute_query(&input.trim());
+                            if history.last() != Some(&input) {
+                                history.push(input.clone());
+                                history_index = None;
+                            }                        
+                        }
+                        
                         input.clear();
+                        
+                    }
+                    KeyCode::Up => {
+                        if history.is_empty() {
+                            return Ok(());
+                        }
+
+                        history_index = match history_index {
+                            None => Some(history.len() - 1),
+                            Some(0) => Some(0),
+                            Some(i) => Some(i - 1),
+                        };
+
+                        if let Some(i) = history_index {
+                            input = history[i].clone();
+                        }
+                    }
+                    KeyCode::Down => {
+                        if history.is_empty() {
+                            return Ok(());
+                        }
+
+                        match history_index {
+                            Some(i) if i < history.len() - 1 => {
+                                history_index = Some(i + 1);
+                                input = history[i + 1].clone();
+                            }
+                            Some(_) => {
+                                history_index = None;
+                                input.clear();
+                            }
+                            None => {}
+                        }
                     }
 
                     KeyCode::Esc => {
