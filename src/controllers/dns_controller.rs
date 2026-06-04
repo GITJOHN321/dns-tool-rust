@@ -1,7 +1,9 @@
 // controllers/dns_controller.rs
 use std::thread;
-
+use std::sync::mpsc;
+use std::time::Duration;
 use crate::models::dns_model::DnsQuery;
+use crate::models::dns_model::WhoisInfo;
 use crate::services::{dns_service,ns_service, mx_service,panel_service,spf_service,dkim_service,dmarc_service,whois_service};
 
 pub fn execute_query(domain: &str) -> DnsQuery {
@@ -41,9 +43,21 @@ pub fn execute_query(domain: &str) -> DnsQuery {
     let dmarc_handle = thread::spawn(move || {
         dmarc_service::resolve_dmarc(&dmarc_domain)
     });
-    let whois_handle = thread::spawn(move || {
-        whois_service::resolve_whois(&whois_domain)
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let result = whois_service::resolve_whois(&whois_domain);
+        let _ = tx.send(result);
     });
+
+    let whois_result = match rx.recv_timeout(Duration::from_secs(3)) {
+        Ok(res) => res,
+        Err(_) => WhoisInfo {
+            registrar: "Timeout".to_string(),
+            expire_date: "Timeout".to_string(),
+            statuses: "Timeout".to_string(),
+        },
+    };
 
     DnsQuery{
         domain: domain.to_string(),
@@ -54,7 +68,7 @@ pub fn execute_query(domain: &str) -> DnsQuery {
         spf: spf_handle.join().unwrap(),
         dkim: dkim_handle.join().unwrap(),
         dmarc: dmarc_handle.join().unwrap(),
-        whois: whois_handle.join().unwrap(),
+        whois: whois_result,
     }
 }
   

@@ -8,10 +8,11 @@ mod utils;
 use crate::ui::matrix_table::render_matrix_table;
 use crate::ui::ns_table::render_basic_table;
 use crate::controllers::dns_controller::execute_query;
+use crate::controllers::format_controller::send_clipboard;
 use crate::models::dns_model::DnsQuery;
 
 use crossterm::{
-    event::{self, Event, KeyCode},
+    event::{self, Event, KeyCode,KeyModifiers},
     execute,
     terminal::{
         disable_raw_mode,
@@ -39,6 +40,7 @@ fn main() -> io::Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     let mut input = String::new();
+    let mut clipboard_advice = String::new();
     let mut domain = DnsQuery::default();
 
     loop {
@@ -123,8 +125,8 @@ fn main() -> io::Result<()> {
                 .constraints([
                     Constraint::Min(4), // Whois
                     Constraint::Length(5), // SSL checker
-                    Constraint::Min(1), // NS Records
-                    Constraint::Min(1),    // MX Records
+                    Constraint::Length(8), // NS Records
+                    Constraint::Length(8),    // MX Records
                     Constraint::Length(3), // Panel
                 ])
                 .split(root[1]);
@@ -139,7 +141,7 @@ fn main() -> io::Result<()> {
                 f,
                 right[0],
                 "WHOIS".to_string(),
-                &format!("- Registrant: {}\n- Expire on: {}\n- Estados:\n -{}",&domain.whois.registrar,&domain.whois.expire_date,&domain.whois.statuses),
+                &format!("- Registrant: {}\n- Expire on: {}\n- Estados:\n{}",&domain.whois.registrar,&domain.whois.expire_date,&domain.whois.statuses),
                 Color::LightBlue,
             );
 
@@ -208,25 +210,25 @@ fn main() -> io::Result<()> {
             {
                 match key.code {
 
-                    // Escribir caracteres
+                    KeyCode::Char('c')
+                        if key.modifiers.contains(KeyModifiers::CONTROL) =>
+                    {
+                        send_clipboard(&domain);
+                    }
+
                     KeyCode::Char(c) => {
                         input.push(c);
                     }
 
-                    // Borrar caracteres
                     KeyCode::Backspace => {
                         input.pop();
                     }
 
-                    // Enter envía contenido
                     KeyCode::Enter => {
                         domain = execute_query(&input);
-                        
-                        // Limpiar input
                         input.clear();
                     }
 
-                    // Salir
                     KeyCode::Esc => {
                         break;
                     }

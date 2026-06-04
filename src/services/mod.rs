@@ -6,3 +6,5 @@ pub mod spf_service;
 pub mod dkim_service;
 pub mod dmarc_service;
 pub mod whois_service;
+pub mod format_service;
+pub mod clipboard_service;

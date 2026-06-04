@@ -1,22 +1,24 @@
 use std::process::Command;
 
 pub fn resolve_spf(domain: &str) -> String {
-    let output = Command::new("dig")
-        .args(["+short", "TXT", domain])
+    let output = Command::new("nslookup")
+        .args(["-type=TXT", domain])
         .output();
 
     let output = match output {
-        Ok(output) => output,
+        Ok(o) => o,
         Err(_) => return "DNS Query Failed".to_string(),
     };
 
-    let txt_records = String::from_utf8_lossy(&output.stdout);
+    let response = String::from_utf8_lossy(&output.stdout);
 
-    for line in txt_records.lines() {
-        let record = line.trim_matches('"');
+    for line in response.lines() {
+        let line = line.trim();
 
-        if record.starts_with("v=spf1") {
-            return record.to_string();
+        if let Some(pos) = line.find("v=spf1") {
+            return line[pos..]
+                .trim_matches('"')
+                .to_string();
         }
     }
 
