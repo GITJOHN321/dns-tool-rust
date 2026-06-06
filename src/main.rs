@@ -1,9 +1,12 @@
 use std::io;
+use std::thread;
+use std::time::Duration;
 mod ui;
 mod models;
 mod services;
 mod controllers;
 mod utils;
+
 
 use crate::ui::matrix_table::render_matrix_table;
 use crate::ui::ns_table::render_basic_table;
@@ -44,6 +47,7 @@ fn main() -> io::Result<()> {
     let mut domain = DnsQuery::default();
     let mut history: Vec<String> = Vec::new();
     let mut history_index: Option<usize> = None;
+    let mut info="Ctrl + C";
 
     loop {
         terminal.draw(|f| {
@@ -106,7 +110,7 @@ fn main() -> io::Result<()> {
                 &domain.domain,
             );
             // --------------------------------------------------
-            // PANEL SECUNDARIO
+            // PANEL Email Info
             // --------------------------------------------------
 
 
@@ -117,7 +121,6 @@ fn main() -> io::Result<()> {
                 &format!("- SPF: {}\n- DMARC: {}\n- DKIM: {}",&domain.spf,&domain.dmarc,&domain.dkim),
                 Color::White,
             );
-
             // ==================================================
             // DERECHA
             // ==================================================
@@ -195,12 +198,27 @@ fn main() -> io::Result<()> {
             // FOOTER
             // --------------------------------------------------
 
+            let footer = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Percentage(50), //panel
+                    Constraint::Percentage(50),    // info
+                ])
+                .split(right[4]);
+
             render_basic_table(
                 f,
-                right[4],
+                footer[0],
                 "Panel".to_string(),
-                &format!("Panel: {}",&domain.panel),
+                &format!("{}",&domain.panel),
                 Color::Blue,
+            );
+            render_basic_table(
+                f,
+                footer[1],
+                "Copiar".to_string(),
+                &info,
+                Color::White,
             );
         })?;
 
@@ -216,6 +234,7 @@ fn main() -> io::Result<()> {
                         if key.modifiers.contains(KeyModifiers::CONTROL) =>
                     {
                         send_clipboard(&domain);
+                        info = "Copiado!";
                     }
 
                     KeyCode::Char(c) => {
@@ -227,7 +246,7 @@ fn main() -> io::Result<()> {
                     }
 
                     KeyCode::Enter => {
-
+                        info = "Cntrl + C";
                         if !input.is_empty() {
                             domain = execute_query(&input.trim());
                             if history.last() != Some(&input) {
