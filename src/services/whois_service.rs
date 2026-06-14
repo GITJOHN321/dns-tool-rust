@@ -2,6 +2,7 @@ use std::process::Command;
 use std::collections::HashSet;
 
 use crate::models::dns_model::WhoisInfo;
+use crate::utils::resolve_server_whois::resolve_server_whois;
 
 const REGISTRAR_KEYS: [&str; 3] = [
     "Registrar:",
@@ -9,53 +10,52 @@ const REGISTRAR_KEYS: [&str; 3] = [
     "Sponsoring Registrar:",
 ];
 
-const EXPIRATION_KEYS: [&str; 5] = [
+const EXPIRATION_KEYS: [&str; 6] = [
     "Registry Expiry Date:",
     "Expiration Date:",
+    "Expiry date:",
     "Expiry Date:",
     "Expires On:",
     "Renewal Date:",
 ];
 
 const STATUS_KEYS: [&str; 3] = [
+    "status:",
     "Domain Status:",
     "Status:",
-    "status:",
 ];
 
 
-/*pub fn resolve_whois(domain: &str) -> WhoisInfo {
-    WhoisInfo::default()
-}*/
 pub fn resolve_whois(domain: &str) -> WhoisInfo {
 
+    let mut whois = WhoisInfo {
+        registrar: "Unknown".to_string(),
+        expire_date: "Unknown".to_string(),
+        statuses: "Unknown".to_string(),
+    };
+
+    let server = resolve_server_whois(domain);
+
+    if server == "Unknown" {
+        return whois;
+    }
+
     let output = match Command::new("whois")
-        .args(["-h","whois.iana.org", domain])
+        .args(["-h", &server, domain])
         .output()
     {
         Ok(output) => output,
-
-        Err(_) => {
-            return WhoisInfo {
-                registrar: "Unknown".to_string(),
-                expire_date: "Unknown".to_string(),
-                statuses: "Unknown".to_string(),
-            };
-        }
+        Err(_) => return whois,
     };
 
     let response =
         String::from_utf8_lossy(&output.stdout);
 
-    let mut registrar =
-        "Not Found".to_string();
-
-    let mut expire_date =
-        "Not Found".to_string();
+    whois.registrar = "Not Found".to_string();
+    whois.expire_date = "Not Found".to_string();
 
     let mut statuses: Vec<String> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
-
 
     for line in response.lines() {
 
@@ -63,10 +63,9 @@ pub fn resolve_whois(domain: &str) -> WhoisInfo {
 
         // Registrar
         for key in REGISTRAR_KEYS {
-
             if line.starts_with(key) {
 
-                registrar = line
+                whois.registrar = line
                     .trim_start_matches(key)
                     .trim()
                     .to_string();
@@ -77,10 +76,9 @@ pub fn resolve_whois(domain: &str) -> WhoisInfo {
 
         // Expiración
         for key in EXPIRATION_KEYS {
-
             if line.starts_with(key) {
 
-                expire_date = line
+                whois.expire_date = line
                     .trim_start_matches(key)
                     .trim()
                     .to_string();
@@ -109,18 +107,13 @@ pub fn resolve_whois(domain: &str) -> WhoisInfo {
                 break;
             }
         }
-
     }
 
-    let statuses = if statuses.is_empty() {
+    whois.statuses = if statuses.is_empty() {
         "Not Found".to_string()
     } else {
         statuses.join("\n")
     };
 
-    WhoisInfo {
-        registrar,
-        expire_date,
-        statuses,
-    }
+    whois
 }
