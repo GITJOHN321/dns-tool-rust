@@ -2,7 +2,7 @@ use std::process::Command;
 use std::collections::HashSet;
 
 use crate::models::dns_model::WhoisInfo;
-use crate::utils::resolve_server_whois::resolve_server_whois;
+use crate::infrastructure::resolve_server_whois::resolve_server_whois;
 
 const REGISTRAR_KEYS: [&str; 3] = [
     "Registrar:",

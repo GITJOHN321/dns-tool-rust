@@ -1,66 +1,83 @@
-// controllers/dns_controller.rs
-use std::thread;
-use std::sync::mpsc;
-use std::time::Duration;
-use crate::models::dns_model::DnsQuery;
-use crate::models::dns_model::WhoisInfo;
-use crate::services::{dns_service,ns_service, mx_service,panel_service,spf_service,dkim_service,dmarc_service,whois_service};
+use std::{
+    sync::mpsc,
+    thread,
+    time::Duration,
+};
+
+use crate::models::dns_model::{DnsQuery, WhoisInfo};
+use crate::services::{
+    dkim_service,
+    dmarc_service,
+    dns_service,
+    mx_service,
+    ns_service,
+    panel_service,
+    spf_service,
+    whois_service,
+};
+
+fn whois_timeout() -> WhoisInfo {
+    WhoisInfo {
+        registrar: "Timeout".to_string(),
+        expire_date: "Timeout".to_string(),
+        statuses: "Timeout".to_string(),
+    }
+}
 
 pub fn execute_query(domain: &str) -> DnsQuery {
-    // Aquí puedes validar el dominio,
-    // registrar logs, combinar servicios, etc.
     let domain = domain.to_string();
-    let hosts_domain = domain.clone();
-    let ns_domain = domain.clone();
-    let mx_domain = domain.clone();
-    let panel_domain = domain.clone();
-    let spf_domain = domain.clone();
-    let dkim_domain = domain.clone();
-    let dmarc_domain = domain.clone();
-    let whois_domain = domain.clone();
 
-    let hosts_handle = thread::spawn(move || {
-        dns_service::query_domain(&hosts_domain)
-    });
-
-    let ns_handle = thread::spawn(move || {
-        ns_service::resolve_ns(&ns_domain)
-    });
-
-    let mx_handle = thread::spawn(move || {
-        mx_service::resolve_mx(&mx_domain)
-    });
-
-    let panel_handle = thread::spawn(move || {
-        panel_service::detect_panel(&panel_domain)
-    });
-    let spf_handle = thread::spawn(move || {
-        spf_service::resolve_spf(&spf_domain)
-    });
-    let dkim_handle = thread::spawn(move || {
-        dkim_service::resolve_dkim(&dkim_domain)
-    });
-    let dmarc_handle = thread::spawn(move || {
-        dmarc_service::resolve_dmarc(&dmarc_domain)
-    });
-    let (tx, rx) = mpsc::channel();
-
-    thread::spawn(move || {
-        let result = whois_service::resolve_whois(&whois_domain);
-        let _ = tx.send(result);
-    });
-
-    let whois_result = match rx.recv_timeout(Duration::from_secs(3)) {
-        Ok(res) => res,
-        Err(_) => WhoisInfo {
-            registrar: "Timeout".to_string(),
-            expire_date: "Timeout".to_string(),
-            statuses: "Timeout".to_string(),
-        },
+    let hosts_handle = {
+        let d = domain.clone();
+        thread::spawn(move || dns_service::query_domain(&d))
     };
 
-    DnsQuery{
-        domain: domain.to_string(),
+    let ns_handle = {
+        let d = domain.clone();
+        thread::spawn(move || ns_service::resolve_ns(&d))
+    };
+
+    let mx_handle = {
+        let d = domain.clone();
+        thread::spawn(move || mx_service::resolve_mx(&d))
+    };
+
+    let panel_handle = {
+        let d = domain.clone();
+        thread::spawn(move || panel_service::detect_panel(&d))
+    };
+
+    let spf_handle = {
+        let d = domain.clone();
+        thread::spawn(move || spf_service::resolve_spf(&d))
+    };
+
+    let dkim_handle = {
+        let d = domain.clone();
+        thread::spawn(move || dkim_service::resolve_dkim(&d))
+    };
+
+    let dmarc_handle = {
+        let d = domain.clone();
+        thread::spawn(move || dmarc_service::resolve_dmarc(&d))
+    };
+
+    let whois_result = {
+        let d = domain.clone();
+        let (tx, rx) = mpsc::channel();
+
+        thread::spawn(move || {
+            let _ = tx.send(
+                whois_service::resolve_whois(&d)
+            );
+        });
+
+        rx.recv_timeout(Duration::from_secs(3))
+            .unwrap_or_else(|_| whois_timeout())
+    };
+
+    DnsQuery {
+        domain,
         hosts: hosts_handle.join().unwrap(),
         ns: ns_handle.join().unwrap(),
         mx: mx_handle.join().unwrap(),
@@ -71,4 +88,3 @@ pub fn execute_query(domain: &str) -> DnsQuery {
         whois: whois_result,
     }
 }
-  

@@ -5,9 +5,9 @@ use crate::models::dns_model::{
     DnsQuery,
     Host,
 };
-use crate::utils::resolve_ip::resolve_ip;
-use crate::utils::resolve_ping::resolve_ping;
-use crate::utils::resolve_ssl::resolve_ssl;
+use crate::infrastructure::resolve_ip::resolve_ip;
+use crate::infrastructure::resolve_ping::resolve_ping;
+use crate::infrastructure::resolve_ssl::resolve_ssl;
 
 pub fn query_domain(domain: &str) -> Vec<Host> {
 

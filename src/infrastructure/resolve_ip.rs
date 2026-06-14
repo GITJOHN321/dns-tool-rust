@@ -6,7 +6,7 @@ pub struct IpInfo {
     pub ptr: String,
 }
 
-use crate::utils::resolve_ptr::resolve_ptr;
+use crate::infrastructure::resolve_ptr::resolve_ptr;
 
 pub fn resolve_ip(hostname: &str) -> IpInfo {
     let output = Command::new("dig")

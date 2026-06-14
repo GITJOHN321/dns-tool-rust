@@ -5,7 +5,7 @@ mod ui;
 mod models;
 mod services;
 mod controllers;
-mod utils;
+mod infrastructure;
 
 
 use crate::ui::matrix_table::render_matrix_table;
