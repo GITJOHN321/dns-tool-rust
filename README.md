@@ -50,7 +50,10 @@ A terminal-based DNS and domain diagnostics toolkit built with **Rust**, **Ratat
 
 ## Screenshots
 
-> Screenshots coming soon.
+<p align="center">
+  <img src="docs/screenshots/facebook_tui.png" width="45%">
+  <img src="docs/screenshots/google_tui.png" width="45%">
+</p>
 
 ---
 
