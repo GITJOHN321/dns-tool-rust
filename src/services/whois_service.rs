@@ -30,7 +30,7 @@ const STATUS_KEYS: [&str; 3] = [
 pub fn resolve_whois(domain: &str) -> WhoisInfo {
 
     let output = match Command::new("whois")
-        .arg(domain)
+        .args(["-h","whois.iana.org", domain])
         .output()
     {
         Ok(output) => output,

@@ -33,3 +33,8 @@ pub struct WhoisInfo {
     pub expire_date: String,
     pub statuses: String,
 }
+#[derive(Debug, Clone, Default)]
+pub struct Panel {
+    pub name: &'static str,
+    pub ports: &'static [u16],
+}

@@ -14,9 +14,11 @@ pub fn resolve_dmarc(domain: &str) -> String {
     let response = String::from_utf8_lossy(&output.stdout);
 
     for line in response.lines() {
-        if line.contains("v=DMARC1") {
+        if line.contains("text =") {
             return line
-                .trim_matches('"')
+                .split('"')
+                .nth(1)
+                .unwrap_or("")
                 .to_string();
         }
     }
