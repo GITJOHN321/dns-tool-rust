@@ -1,8 +1,8 @@
-# dnstui
+# Tuidns
 
 A terminal-based DNS and domain diagnostics toolkit built with **Rust**, **Ratatui**, and **Crossterm**.
 
-`dnstui` provides a centralized interface for gathering domain, DNS, SSL, email authentication, and WHOIS information without switching between multiple command-line tools.
+`Tuidns` provides a centralized interface for gathering domain, DNS, SSL, email authentication, and WHOIS information without switching between multiple command-line tools.
 
 ---
 
@@ -64,8 +64,8 @@ A terminal-based DNS and domain diagnostics toolkit built with **Rust**, **Ratat
 Clone the repository:
 
 ```bash
-git clone https://github.com/<your-user>/dnstui.git
-cd dnstui
+git clone https://github.com/<your-user>/Tuidns.git
+cd Tuidns
 ```
 
 Build the project:
@@ -77,7 +77,7 @@ cargo build --release
 The binary will be available at:
 
 ```bash
-target/release/dnstui
+target/release/Tuidns
 ```
 
 ---
@@ -138,7 +138,7 @@ sudo dnf install \
 Launch the application:
 
 ```bash
-dnstui
+Tuidns
 ```
 
 Enter a domain name:
@@ -209,7 +209,7 @@ Provide infrastructure and network-related helpers such as:
 
 ---
 
-## Why dnstui?
+## Why Tuidns?
 
 System administrators and hosting support teams often need to run multiple commands to gather domain information:
 
@@ -220,7 +220,7 @@ openssl s_client ...
 ping example.com
 ```
 
-`dnstui` consolidates all of this information into a single interactive terminal interface, making domain diagnostics faster and more convenient.
+`Tuidns` consolidates all of this information into a single interactive terminal interface, making domain diagnostics faster and more convenient.
 
 ---
 
